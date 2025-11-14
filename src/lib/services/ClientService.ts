@@ -16,12 +16,12 @@ export default class ClientService {
         return $api.patch<{client: ClientFull}>(`/api/clients/${id}`, {name, email, phone});
     }
 
-    static async getClients({page, limit}: ClientsGetDto): Promise<AxiosResponse<{clients: Client[]}>> {
+    static async getClients({page, limit}: ClientsGetDto): Promise<AxiosResponse<{clients: Client[], total: number}>> {
         let query = `/?`;
         if (page) query += `page=${page}&`;
         if (limit) query += `limit=${limit}&`; 
 
-        return $api.get<{clients: Client[]}>(`/api/clients${query}`);
+        return $api.get<{clients: Client[], total: number}>(`/api/clients${query}`);  
     }
 
     static deleteClient(id: string): Promise<AxiosResponse<{message: string}>>  {

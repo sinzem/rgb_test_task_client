@@ -7,6 +7,7 @@ import ClientService from "../services/ClientService";
 interface ClientState {
     client: ClientFull | null;
     clients: Client[];
+    clientsTotal: number;
     isWarn: string[] | null;
     isLoading: boolean; 
 
@@ -21,6 +22,7 @@ interface ClientState {
 export const useClientStore = create<ClientState>((set) => ({
     client: null,
     clients: [],
+    clientsTotal: 0,
     isWarn: null,
     isLoading: false,
 
@@ -32,15 +34,11 @@ export const useClientStore = create<ClientState>((set) => ({
             if (response && response.status === 201 && response.data.client) {
                 set((state) => ({ clients: [response.data.client, ...state.clients] }));
                 set(() => ({isWarn: ["Client created successfully"]}));
-            } else {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore       
-                // eslint-disable-next-line no-unused-vars 
-                set(() => ({ isWarn: [...response.response.data.message]}));
-            }  
+            } 
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                set(() => ({ isWarn: error.response?.data.message }));
+                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
                 set(() => ({ isWarn: ["Connection error, try later"]}));
@@ -108,15 +106,12 @@ export const useClientStore = create<ClientState>((set) => ({
             const response = await ClientService.getClients({page, limit});
             if (response && response.status === 200 && response.data.clients) {
                 set(() => ({clients: response.data.clients}));
-            } else {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore       
-                // eslint-disable-next-line no-unused-vars       
-                set(() => ({ isWarn: [...response.response.data.message ]}));
+                set(() => ({clientsTotal: response.data.total}))
             }  
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                set(() => ({ isWarn: [...error.response?.data.message] }));
+                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
                 set(() => ({ isWarn: ["Connection error, try later"] }));
@@ -134,20 +129,16 @@ export const useClientStore = create<ClientState>((set) => ({
             if (response && response.status === 200) {
                 set(() => ({isWarn: [response.data.message]}));
                 set((store) => ({clients: store.clients.filter((item) => item.id !== id)}))
-            } else {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore       
-                // eslint-disable-next-line no-unused-vars       
-                set(() => ({ isWarn: [response.response.data.message] }));
-            }  
+            } 
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                set(() => ({ isWarn: [...error.response?.data.message] }));
+                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
-              } else {
-                set(() => ({ isWarn: ["Connection error, try later"] }));
-                console.error("Connection error when deleting client:", error);
-              }
+            } else {
+            set(() => ({ isWarn: ["Connection error, try later"] }));
+            console.error("Connection error when deleting client:", error);
+            }
         } finally {
             set(() => ({isLoading: false})); 
         }

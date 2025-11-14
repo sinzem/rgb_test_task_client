@@ -10,7 +10,7 @@ const Message = () => {
 
     useEffect(() => {
         if (clientWarn) {
-            const timeout = setTimeout(() => setClientWarn(null), 2500);
+            const timeout = setTimeout(() => setClientWarn(null), 3000);
 
             return () => clearTimeout(timeout);
         }
@@ -18,7 +18,7 @@ const Message = () => {
 
     useEffect(() => {
         if (dealWarn) {
-            const timeout = setTimeout(() => setDealWarn(null), 2500);
+            const timeout = setTimeout(() => setDealWarn(null), 3000);
 
             return () => clearTimeout(timeout);
         }
