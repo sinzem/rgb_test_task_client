@@ -4,9 +4,10 @@ import { useClientStore } from "@/lib/store/clientStore";
 import { MouseEvent, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { AddClientForm } from "./AddClientForm";
+import { redirect } from "next/navigation";
 
 const ClientsList = () => {
-    const [page, setPage] = useState<number>(3);
+    const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
     const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
 
@@ -48,13 +49,13 @@ const ClientsList = () => {
                     Quantity per page: {limit}
                     <div>
                         <Button 
-                            disabled={limit < 50 ? false : true} onClick={() => {setLimit(prev => prev + 1); setPage(1)}}
+                            disabled={limit < 50 ? false : true} onClick={() => setLimit(prev => prev + 1)}
                             className="font-bold text-xl w-9"
                         >
                             +
                         </Button>
                         <Button 
-                            disabled={limit > 1 ? false : true} onClick={() => {setLimit(prev => prev - 1); setPage(1)}}
+                            disabled={limit > 1 ? false : true} onClick={() => setLimit(prev => prev - 1)}
                             className="font-bold text-xl w-9"
                         >
                             -
@@ -85,7 +86,7 @@ const ClientsList = () => {
 
             {clients.map(item => (
                 <div key={item.email} className="px-6 py-2 mb-4 lg:w-1/2 flex justify-between border border-gray-300 rounded-sm" >
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3 cursor-pointer" onClick={() => redirect(`/clients/${item.id}`)}>
                         <h2>{item.name}</h2>
                         <div className="flex flex-col gap-1 text-base font-normal">
                             <div className="flex flex-col sm:flex-row sm:gap-5">
