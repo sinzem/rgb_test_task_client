@@ -10,7 +10,7 @@ const Loader = () => {
     if (!clientLoading && !dealLoading) return;
 
     return (
-        <div className="fixed bottom-10 left-10">
+        <div className="fixed bottom-10 left-10 z-20">
             <img src="./loader.gif" alt="loader"/>
         </div>
     );

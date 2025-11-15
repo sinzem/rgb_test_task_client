@@ -2,11 +2,13 @@ import { create } from "zustand";
 import axios from "axios";
 import { Deal, DealCreateDto, DealFull, DealsGetDto, DealUpdateDto } from "@/types/deals";
 import DealService from "../services/DealService";
+import { useClientStore } from "./clientStore";
 
 
 interface DealState {
     deal: DealFull | null;
     deals: Deal[];
+    totalDeals: number;
     isWarn: string[] | null;
     isLoading: boolean;  
 
@@ -20,26 +22,27 @@ interface DealState {
 export const useDealStore = create<DealState>((set) => ({
     deal: null,
     deals: [],
+    totalDeals: 0,
     isWarn: null,
     isLoading: false,
 
     setWarn: (value) => {set(() => ({isWarn: value}))},
     createDeal: async ({title, amount, clientId}) => {
+        const {client, setClient} = useClientStore.getState();
         set(() => ({isLoading: true}));
         try {
             const response = await DealService.createDeal({title, amount, clientId});
             if (response && response.status === 201 && response.data.deal) {
-                set((state) => ({deals: [response.data.deal, ...state.deals]}));
+                if (client) {
+                    const newClient = {...client, deals: [...client.deals, response.data.deal]};
+                    setClient(newClient)
+                }
                 set(() => ({isWarn: ["Deal created successfully"]}));
-            } else {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore       
-                // eslint-disable-next-line no-unused-vars 
-                set(() => ({ isWarn: [...response.response.data.message] }));
-            }  
+            }   
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                set(() => ({ isWarn: [...error.response?.data.message] }));
+                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
                 set(() => ({ isWarn: ["Connection error, try later" ]}));
@@ -51,21 +54,24 @@ export const useDealStore = create<DealState>((set) => ({
     },
 
     updateDeal: async (id, {title, amount, status}) => {
+        const {client, setClient} = useClientStore.getState();
         set(() => ({isLoading: true}));
         try {
             const response = await DealService.updateDeal(id, {title, amount, status});
             if (response && response.status === 200 && response.data.deal) {
-                set((state) => ({ deals: [response.data.deal, ...state.deals] }));
+                if (client) {
+                    const deals = client.deals.filter(deal => deal.id !== id)
+                    const newClient = {...client, deals: [...deals, response.data.deal]};
+                    setClient(newClient)
+                }
+                // set((state) => ({ deals: [response.data.deal, ...state.deals] }));
+                set((store) => ({deals: store.deals.map((deal) => deal.id === id ? response.data.deal : deal)}));
                 set(() => ({isWarn: ["Deal updated successfully"]}));
-            } else {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore       
-                // eslint-disable-next-line no-unused-vars        
-                set(() => ({ isError: [...response.response.data.message ]}));
-            }  
+            }
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                set(() => ({ isWarn: [...error.response?.data.message] }));
+                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
                 set(() => ({ isWarn: ["Connection error, try later"] }));
@@ -82,15 +88,12 @@ export const useDealStore = create<DealState>((set) => ({
             const response = await DealService.getDeals({page, limit, status, clientId});
             if (response && response.status === 200 && response.data.deals) {
                 set(() => ({deals: response.data.deals}));
-            } else {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore       
-                // eslint-disable-next-line no-unused-vars       
-                set(() => ({ isWarn: [...response.response.data.message] }));
+                set(() => ({totalDeals: response.data.total}));
             }  
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                set(() => ({ isWarn: [...error.response?.data.message] }));
+                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
                 set(() => ({ isWarn: ["Connection error, try later" ]}));
@@ -106,16 +109,18 @@ export const useDealStore = create<DealState>((set) => ({
         try {
             const response = await DealService.deleteDeal(id);
             if (response && response.status === 200) {
-                set(() => ({isWarn: [...response.data.message]}));
-            } else {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore       
-                // eslint-disable-next-line no-unused-vars       
-                set(() => ({ isWarn: [...response.response.data.message] }));
-            }  
+                const {client, setClient} = useClientStore.getState();
+                if (client) {
+                    const newClient = {...client, deals: [...client.deals.filter(deal => deal.id !== id)]};
+                    setClient(newClient)
+                }
+                set((store) => ({deals: [...store.deals.filter(deal => deal.id !== id)]}));
+                set(() => ({isWarn: [response.data.message]}));
+            } 
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                set(() => ({ isWarn: [...error.response?.data.message ]}));
+                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
                 set(() => ({ isWarn: ["Connection error, try later"] }));

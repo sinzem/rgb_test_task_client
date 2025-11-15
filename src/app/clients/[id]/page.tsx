@@ -1,5 +1,5 @@
-import ClientData from "@/components/clientData/ClientData";
-import ClientDeals from "@/components/clientData/ClientDeals";
+import ClientData from "@/components/client/ClientData";
+import ClientDeals from "@/components/client/ClientDeals";
 
 
 const ClientPage = () => {

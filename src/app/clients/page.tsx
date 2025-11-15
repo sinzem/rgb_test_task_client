@@ -1,4 +1,4 @@
-import { ClientsList } from "@/components/clientsList/ClientsList";
+import { ClientsList } from "@/components/clients/ClientsList";
 
 const ClientsPage = () => {
 

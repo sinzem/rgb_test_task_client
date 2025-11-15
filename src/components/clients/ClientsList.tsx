@@ -3,7 +3,7 @@
 import { useClientStore } from "@/lib/store/clientStore";
 import { MouseEvent, useEffect, useState } from "react";
 import { Button } from "../ui/button";
-import { AddClientForm } from "./AddClientForm";
+import { AddClientForm } from "../client/AddClientForm";
 import { redirect } from "next/navigation";
 
 const ClientsList = () => {
@@ -108,7 +108,7 @@ const ClientsList = () => {
             ))}
 
             {showCreateForm &&
-                <div className="w-full h-[100vh] fixed top-0 left-0 bg-black/90 flex items-center justify-center">
+                <div className="w-full h-[100vh] fixed top-0 left-0 bg-black/90 flex items-center justify-center z-10">
                     <AddClientForm activity={setShowCreateForm} />
                 </div>
             }

@@ -28,7 +28,7 @@ export type DealCreateDto = {
 
 export type DealUpdateDto = {
     title?: string;
-    amount?: string;
+    amount?: number;
     status?: DealStatus;
 }
 

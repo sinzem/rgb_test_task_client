@@ -16,14 +16,14 @@ export default class DealService {
         return $api.patch<{deal: DealFull}>(`/api/deals/${id}`, {title, amount, status});
     }
 
-    static async getDeals({page, limit, status, clientId}: DealsGetDto): Promise<AxiosResponse<{deals: Deal[]}>> {
+    static async getDeals({page, limit, status, clientId}: DealsGetDto): Promise<AxiosResponse<{deals: Deal[], total: number}>> {
         let query = `/?`;
         if (page) query += `page=${page}&`;
         if (limit) query += `limit=${limit}&`; 
         if (status) query += `status=${status}&`; 
         if (clientId) query += `limit=${clientId}&`; 
 
-        return $api.get<{deals: Deal[]}>(`/api/deals${query}`);
+        return $api.get<{deals: Deal[], total: number}>(`/api/deals${query}`);
     }
 
     static deleteDeal(id: string): Promise<AxiosResponse<{message: string}>>  {

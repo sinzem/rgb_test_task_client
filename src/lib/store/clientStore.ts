@@ -11,7 +11,8 @@ interface ClientState {
     isWarn: string[] | null;
     isLoading: boolean; 
 
-    setWarn: (value: string[] | null) => void;  
+    setWarn: (value: string[] | null) => void; 
+    setClient: (client: ClientFull) => void; 
     createClient: ({name, email, phone}: ClientCreateDto) => Promise<void>;
     updateClient: (id: string, {name, email, phone}: ClientUpdateDto) => Promise<void>;
     getClient: (id: string) => Promise<void>;
@@ -27,6 +28,7 @@ export const useClientStore = create<ClientState>((set) => ({
     isLoading: false,
 
     setWarn: (value) => {set(() => ({isWarn: value}))},   
+    setClient: (client) => {set(() => ({client}))},
     createClient: async ({name, email, phone}) => {
         set(() => ({isLoading: true}));
         try {
@@ -54,17 +56,17 @@ export const useClientStore = create<ClientState>((set) => ({
         try {
             const response = await ClientService.updateClient(id, {name, email, phone});
             if (response && response.status === 200 && response.data.client) {
-                set((state) => ({ clients: [response.data.client, ...state.clients] }));
+                set((state) => ({ client: {...state.client, ...response.data.client} }));
                 set(() => ({isWarn: ["Client updated successfully"]}));
-            } else {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore       
-                // eslint-disable-next-line no-unused-vars        
-                set(() => ({ isWarn: [...response.response.data.message] }));
             }  
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                set(() => ({ isWarn: [...error.response?.data.message] }));
+                const messages = Array.isArray(error.response?.data) 
+                    ? error.response.data 
+                    : typeof error.response?.data?.message === "string" 
+                    ? [error.response?.data?.message] 
+                    : [];
+                set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
                 set(() => ({ isWarn: ["Connection error, try later"] }));
