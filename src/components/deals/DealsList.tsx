@@ -3,12 +3,16 @@
 import { useDealStore } from "@/lib/store/dealStore";
 import DealCard from "./DealCard";
 import { useEffect, useState } from "react";
-import { Button } from "../ui/button";
+import LimitChanger from "../ui/limitChanger";
+import Pagination from "../ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { DealStatusSelect } from "@/types/deals";
 
 
 const DealsList = () => {
     const [page, setPage] = useState<number>(1);
     const [limit, setLimit] = useState<number>(10);
+    const [status, setStatus] = useState<DealStatusSelect>("ALL");
     const {deals, totalDeals, getDeals} = useDealStore();
 
     useEffect(() => {
@@ -18,59 +22,48 @@ const DealsList = () => {
     const changePage = (direction: string) => {
         if (direction === "prev" && page - 1 > 0) {
             setPage(prev => prev - 1);
-            getDeals({page: page - 1, limit});
+            getDeals({page: page - 1, limit, status: status === "ALL" ? undefined : status});
         }
         if (direction === "next" && Math.ceil(totalDeals / limit) > page) {
             setPage(prev => prev + 1);
-            getDeals({page: page + 1, limit});
+            getDeals({page: page + 1, limit, status: status === "ALL" ? undefined : status});
         }
     }
 
+    const changeSelect = (value: DealStatusSelect) => {
+        setPage(1);
+        setStatus(value);
+        getDeals({page: 1, limit, status: value === "ALL" ? undefined : value});
+    }
+    
     return (
         <div className="mb-4 flex-col w-[100%] lg:w-[50%] flex gap-5">
 
             <div className="mb-4 flex-col sm:flex-row w-[100%] flex gap-5">
-                <div className="flex gap-3 items-center">
-                    Quantity per page: {limit}
-                    <div>
-                        <Button 
-                            disabled={limit < 50 ? false : true} onClick={() => setLimit(prev => prev + 1)}
-                            className="font-bold text-xl w-9"
-                        >
-                            +
-                        </Button>
-                        <Button 
-                            disabled={limit > 1 ? false : true} onClick={() => setLimit(prev => prev - 1)}
-                            className="font-bold text-xl w-9"
-                        >
-                            -
-                        </Button>
-                    </div>
-                </div>
+                <LimitChanger limit={limit} setLimit={setLimit}/>
             </div>
-            
-            <div className="flex gap-4 items-center mb-4">
-                <div
-                    onClick={() => changePage("prev")}  
-                    className={`${page - 1 < 1 ? "opacity-50 cursor-default" : "opacity-100 cursor-pointer"} py-1 px-2.5 bg-gray-200 hover:bg-gray-300 border border-gray-300 rounded-lg select-none`}
-                >
-                    Prev
-                </div>
-                    {page}
-                <div
-                    onClick={() => changePage("next")}  
-                    className={`${(Math.floor(totalDeals / limit) < page) ? "opacity-50 cursor-default" : "opacity-100 cursor-pointer"} py-1 px-2.5 bg-gray-200 hover:bg-gray-300 border border-gray-300 rounded-lg select-none`}
-                >
-                    Next
-                </div>
-            </div>
+
+            <Select onValueChange={(value) => changeSelect(value as DealStatusSelect)}>
+                <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select deal status" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="ALL">ALL</SelectItem>
+                    <SelectItem value="NEW">NEW</SelectItem>
+                    <SelectItem value="IN_PROGRESS">IN_PROGRESS</SelectItem>
+                    <SelectItem value="WON">WON</SelectItem>
+                    <SelectItem value="LOST">LOST</SelectItem>
+                </SelectContent>
+            </Select>
+
+            <Pagination page={page} limit={limit} total={totalDeals} changePage={changePage} />
 
             {!deals || !deals.length &&
                 <div className="text-xl font-bold">No Data...</div>
             }
             {deals.length 
                 ? ([...deals].reverse().map(deal => (
-                    <DealCard key={deal.id} deal={deal}/>
+                    <DealCard key={deal.id} deal={deal} direction="dealsList"/>
                 )))
                 : null
             }

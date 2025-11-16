@@ -9,9 +9,7 @@ export type Deal = {
     updatedAt: Date, 
 }
 
-export type DealFull = Deal & {
-    client: Client;
-}
+export type DealFull = Deal & {client: Client}
 
 export enum DealStatus {
     NEW = "NEW",
@@ -19,6 +17,8 @@ export enum DealStatus {
     WON = "WON",
     LOST = "LOST"
 }
+
+export type DealStatusSelect = "NEW" | "IN_PROGRESS" | "WON" | "LOST" | "ALL";
 
 export type DealCreateDto = {
     title: string;
@@ -35,6 +35,6 @@ export type DealUpdateDto = {
 export type DealsGetDto = {
     page?: number;
     limit?: number;
-    status?: DealStatus;
+    status?: "NEW" | "IN_PROGRESS" | "WON" | "LOST" | undefined;
     clientId?: string;
 }

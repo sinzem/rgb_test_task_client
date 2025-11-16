@@ -3,6 +3,7 @@ import axios from "axios";
 import { Deal, DealCreateDto, DealFull, DealsGetDto, DealUpdateDto } from "@/types/deals";
 import DealService from "../services/DealService";
 import { useClientStore } from "./clientStore";
+import { responseErrorIsArray } from "../utils/responseErrorIsArray";
 
 
 interface DealState {
@@ -16,6 +17,7 @@ interface DealState {
     createDeal: ({title, amount, clientId}: DealCreateDto) => Promise<void>;
     updateDeal: (id: string, {title, amount, status}: DealUpdateDto) => Promise<void>;
     getDeals: ({page, limit, status, clientId}: DealsGetDto) => Promise<void>;
+    getDeal: (id: string) => Promise<void>;
     deleteDeal: (id: string) => Promise<void>;
 }
 
@@ -41,7 +43,7 @@ export const useDealStore = create<DealState>((set) => ({
             }   
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                const messages = responseErrorIsArray(error.response?.data);
                 set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
@@ -64,13 +66,14 @@ export const useDealStore = create<DealState>((set) => ({
                     const newClient = {...client, deals: [...deals, response.data.deal]};
                     setClient(newClient)
                 }
-                // set((state) => ({ deals: [response.data.deal, ...state.deals] }));
+                
                 set((store) => ({deals: store.deals.map((deal) => deal.id === id ? response.data.deal : deal)}));
+                set((store) => ({deal: store.deal?.id === id ? {...store.deal, ...response.data.deal} : store.deal}));
                 set(() => ({isWarn: ["Deal updated successfully"]}));
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                const messages = responseErrorIsArray(error.response?.data);
                 set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
@@ -92,13 +95,34 @@ export const useDealStore = create<DealState>((set) => ({
             }  
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                const messages = responseErrorIsArray(error.response?.data);
                 set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
                 set(() => ({ isWarn: ["Connection error, try later" ]}));
                 console.error("Connection error when getting deals:", error);
               }
+        } finally {
+            set(() => ({isLoading: false})); 
+        }
+    },
+
+    getDeal: async (id: string) => {
+        set(() => ({isLoading: true}));
+        try {
+            const response = await DealService.getDeal(id);
+            if (response && response.status === 200 && response.data.deal) {
+                set(() => ({deal: response.data.deal}));
+            } 
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                const messages = responseErrorIsArray(error.response?.data);
+                set(() => ({ isWarn: [error.message, ...messages]}));
+                throw error;
+                } else {
+                set(() => ({ isWarn: ["Connection error, try later"] }));
+                console.error("Connection error when getting client:", error);
+                }
         } finally {
             set(() => ({isLoading: false})); 
         }
@@ -119,7 +143,7 @@ export const useDealStore = create<DealState>((set) => ({
             } 
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                const messages = responseErrorIsArray(error.response?.data);
                 set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {

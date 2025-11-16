@@ -1,45 +1,81 @@
-import { Deal } from "@/types/deals";
+"use client";
+
+import { Deal, DealFull } from "@/types/deals";
 import { Button } from "../ui/button";
 import { useDealStore } from "@/lib/store/dealStore";
-import { MouseEvent, useState } from "react";
+import { MouseEvent, useEffect, useState } from "react";
 import { UpdateDealForm } from "./UpdateDealForm";
+import { getTime } from "@/lib/utils/getTime";
+import { redirect, useParams } from "next/navigation";
 
-const DealCard = ({deal}: {deal: Deal}) => {
+const DealCard = ({deal, direction}: {deal?: Deal; direction: "clientCard" | "dealsList" | "dealPage"}) => {
+    const params = useParams();
+    const id = params?.id;
+
     const [showCreateForm, setShowCreateForm] = useState<boolean>(false);
-    const {deleteDeal} = useDealStore();
+    const {deal: dealFull, getDeal, deleteDeal} = useDealStore();
+
+    useEffect(() => {
+        if (direction === "dealPage" && id && typeof id === "string") {
+            getDeal(id);
+        }
+    }, [])
+
+    let data: DealFull | Deal | undefined | null;
+    if (direction === "dealPage") data = dealFull; 
+    if (direction === "clientCard" ||  direction === "dealsList") data = deal; 
+
+    if (!data) {
+        return <div className="p-4 lg:w-1/2 flex flex-col gap-6 text-2xl border border-gray-300 rounded-xl">No Data...</div>
+    }
 
     const removeDeal = (e: MouseEvent<HTMLButtonElement>) => {
         const target = e?.target as HTMLButtonElement | null;
         if (target && target.dataset && target.dataset.id) deleteDeal(target.dataset.id);
     }
 
-    const updateDeal = () => {
-        setShowCreateForm(true);
+    const clickAction = () => {
+        if (direction === "clientCard" || direction === "dealPage") {
+            setShowCreateForm(true);
+        } else {
+            redirect(`/deals/${data.id}`);
+        } 
+    }
+
+    const toClientPage = () => {
+        if (direction === "dealPage" && data && "client" in data) {
+            redirect(`/clients/${data.client.id}`)
+        }
     }
     
     return (
-        <div className="w-full p-3 border border-gray-3000 rounded-lg">
-            <div className="flex item-center justify-between">
-                <h2 onClick={updateDeal} className="text-lg font-bold cursor-pointer">{deal.title}</h2>
-                <Button data-id={deal.id} onClick={removeDeal} className="cursor-pointer">Delete</Button>
+        <div className="w-full p-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between border border-gray-3000 rounded-lg">
+            <div className="flex flex-col gap-2 text-base font-normal">
+                <h2 className={`${direction === "dealPage" ? "text-2xl" : "text-lg"} font-bold cursor-pointer`}>{data.title}</h2>
+                {direction === "dealPage" && data && "client" in data &&
+                    <h2 className={`${direction === "dealPage" ? "text-2xl" : "text-lg"} font-bold cursor-pointer`}><span className="font-normal">Client:</span>  {data.client.name}</h2>
+                }
+                <div className="flex flex-col sm:flex-row sm:gap-5">
+                    <h4>Amount: {data.amount}</h4>
+                    <h4>Status: {data.status}</h4>
+                </div>
+                <div className="flex flex-col gap-1">
+                    <h4>Creation date: {getTime(data.createdAt)}</h4>
+                    <h4>Last modified: {getTime(data.updatedAt)}</h4>
+                </div>
             </div>
-            <div onClick={updateDeal} className="grid grid-rows-[1fr_1fr] gap-1 text-base font-normal cursor-pointer">
-                <div className="flex flex-col sm:flex-row sm:gap-5">
-                    <h4>Amount: {deal.amount}</h4>
-                    <h4>Status: {deal.status}</h4>
-                </div>
-                <div className="flex flex-col sm:flex-row sm:gap-5">
-                    <h4>Creation date: {`
-                        ${new Date(deal.createdAt).getDate()}.${new Date(deal.createdAt).getMonth()}.${new Date(deal.createdAt).getFullYear()}
-                    `}</h4>
-                    <h4>Last modified: {`
-                        ${new Date(deal.updatedAt).getDate()}.${new Date(deal.updatedAt).getMonth()}.${new Date(deal.updatedAt).getFullYear()}
-                    `}</h4>
-                </div>
+            <div className="flex sm:flex-col gap-2 item-center justify-end">
+                {direction === "dealPage" &&
+                    <Button data-id={data.id} onClick={toClientPage} className="min-w-24 cursor-pointer">All client deals</Button>
+                }
+                <Button data-id={data.id} onClick={clickAction} className="min-w-24 cursor-pointer">
+                    {direction === "dealsList" ? "Details" : "Update"}
+                </Button>
+                <Button data-id={data.id} onClick={removeDeal} className="min-w-24 cursor-pointer">Delete</Button>
             </div>
              {showCreateForm &&
                 <div className="w-full h-[100vh] fixed top-0 left-0 bg-black/90 flex items-center justify-center z-10">
-                    <UpdateDealForm activity={setShowCreateForm} deal={deal} />
+                    <UpdateDealForm activity={setShowCreateForm} deal={data} />
                 </div>
             }
         </div>

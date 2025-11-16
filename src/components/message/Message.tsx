@@ -31,14 +31,14 @@ const Message = () => {
             {clientWarn && 
                 <div className="p-8 h-fit bg-gray-200 text-xl font-bold border border-gray-500 rounded-sm">
                     {clientWarn.map(mes => (
-                        <h2 key={mes}>{mes}</h2>
+                        <h2 className="mb-2" key={mes}>{mes}</h2>
                     ))}
                 </div>
             } 
             {dealWarn && 
                 <div className="p-8 h-fit bg-gray-200 text-xl font-bold border border-gray-500 rounded-sm">
                     {dealWarn.map(mes => (
-                        <h2 key={mes}>{mes}</h2>
+                        <h2 className="mb-2" key={mes}>{mes}</h2>
                     ))}
                 </div>
             } 

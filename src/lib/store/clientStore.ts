@@ -2,6 +2,7 @@ import { create } from "zustand";
 import axios from "axios";
 import { Client, ClientCreateDto, ClientFull, ClientsGetDto, ClientUpdateDto } from "@/types/clients";
 import ClientService from "../services/ClientService";
+import { responseErrorIsArray } from "../utils/responseErrorIsArray";
 
 
 interface ClientState {
@@ -39,7 +40,7 @@ export const useClientStore = create<ClientState>((set) => ({
             } 
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                const messages = responseErrorIsArray(error.response?.data);
                 set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
@@ -61,11 +62,7 @@ export const useClientStore = create<ClientState>((set) => ({
             }  
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const messages = Array.isArray(error.response?.data) 
-                    ? error.response.data 
-                    : typeof error.response?.data?.message === "string" 
-                    ? [error.response?.data?.message] 
-                    : [];
+                const messages = responseErrorIsArray(error.response?.data);
                 set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
@@ -86,7 +83,7 @@ export const useClientStore = create<ClientState>((set) => ({
             } 
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                const messages = responseErrorIsArray(error.response?.data);
                 set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
@@ -108,7 +105,7 @@ export const useClientStore = create<ClientState>((set) => ({
             }  
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                const messages = responseErrorIsArray(error.response?.data);
                 set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
               } else {
@@ -131,7 +128,7 @@ export const useClientStore = create<ClientState>((set) => ({
             } 
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const messages = Array.isArray(error.response?.data) ? error.response.data : [];
+                const messages = responseErrorIsArray(error.response?.data);
                 set(() => ({ isWarn: [error.message, ...messages]}));
                 throw error;
             } else {

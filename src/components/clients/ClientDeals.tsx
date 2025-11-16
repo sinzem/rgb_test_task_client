@@ -18,13 +18,13 @@ const ClientDeals = () => {
    
     return (
         <div className="p-4 lg:w-1/2 relative flex flex-col gap-4 border border-gray-300 rounded-xl">
-            <Button onClick={addDeal} className="w-fit ml-auto cursor-pointer">Add deal</Button>
+            <Button onClick={addDeal} className="min-w-24 mr-2 ml-auto cursor-pointer">Add deal</Button>
             {!client.deals.length && 
-                <h2 className="text-2xl">The client does not have any deals yet...</h2>
+                <h2 className="ml-2 text-2xl">The client does not have any deals yet...</h2>
             }
 
             {[...client.deals].reverse().map(deal => (
-                <DealCard key={deal.id} deal={deal}/>
+                <DealCard key={deal.id} deal={deal} direction="clientCard" />
             ))}
                
             {showCreateForm && 
